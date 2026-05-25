@@ -1,0 +1,792 @@
+{
+  "name": "Employee Feedback to Vector DB",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dbaa666f-960c-43b7-828c-f96e6f8d7af9",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA",
+          "mode": "list",
+          "cachedResultName": "Synthetic Employee Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 959617903,
+          "mode": "list",
+          "cachedResultName": "employees_master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA/edit#gid=959617903"
+        },
+        "options": {}
+      },
+      "id": "65a09a75-794e-42fb-aa3f-d6df96fed784",
+      "name": "Read Employee Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yPOADkpyi2JMdavB",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "employee_name",
+              "value": "={{ $json.employee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "role",
+              "value": "={{ $json.role }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "manager",
+              "value": "={{ $json.manager }}",
+              "type": "string"
+            },
+            {
+              "id": "12ba4a25-0273-4959-a3fb-abe69cf28148",
+              "name": "persona",
+              "value": "={{ $json.persona }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "tenure_months",
+              "value": "={{ $json.tenure_months }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "prompt",
+              "value": "=Generate realistic survey feedback for this employee:\nName: {{ $json.employee_name }}\nDepartment: {{ $json.department }}\nRole: {{ $json.role }}\nManager: {{ $json.manager }}\nPersona: {{ $json.persona }}\nTenure: {{ $json.tenure_months }}\n\nYou are generating synthetic employee sentiment and organizational feedback data for an enterprise workforce intelligence platform using the employee record data passed to you.\n\nGenerate synthetic workforce feedback with:\n- 20% highly positive\n- 50% neutral\n- 30% negative\n- realistic emotional nuance\n- indirect burnout language\n- subtle disengagement indicators\n- mixed communication styles\n- varying writing lengths\n\nRequirements:\n- Use realistic corporate language\n- Include varied emotional tones (Burnout, Frustration, Excitement, Motivation, Disengagement, Career optimism, Collaboration fatigue) \n- Include positive, neutral, and negative sentiment\n- Include realistic stress and growth scores\n- Include collaboration concerns occasionally\n- Include burnout indicators sometimes\n- Include mentorship or career growth signals\n- Include meeting overload complaints occasionally\n- Include organizational events (Reorg, Product launch, Layoff concerns, Heavy sprint cycle, Budget pressure, Hiring freeze)\n\nReturn ONLY valid JSON array. Output ONLY raw JSON. Do not use Markdown code blocks or backticks. Send the output to the code in javascript parser.\n\nSchema:\n[\n  {\n    \"employee_id\":{{ $json.employee_id }},\n    \"employee_name\":{{ $json.employee_name }},\n    \"department\":{{ $json.department }},\n    \"manager\":{{ $json.manager }},\n    \"role\":{{ $json.role }},\n    \"tenure_months\":{{ $json.tenure_months }},\n    \"stress_score\":,\n    \"growth_score\":,\n    \"collaboration_score\":,\n    \"sentiment\":\"\",\n    \"burnout_risk\":\"\",\n    \"feedback_text\":\"\",\n    \"retention_risk\":\"\",\n    \"learning_interest\":\"\",\n    \"meeting_overload\":,\n    \"workflow_blockers\":\"\",\n    \"last_feedback_date\":\"\"\n  }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aaa93519-b941-482a-9989-eca89f3c0c84",
+      "name": "Prepare Employee Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "Use the context being passed from previous step.  Only generate one feedback record.  \n\nExclude names in the feedback_text.\nstress_score is a value from 1-10\ngrowth_score is a value from 1-10\ncollaboration_score is a value from 1-10\nmeeting_overload is true or false\nlast_feedback_date is today's date"
+        }
+      },
+      "id": "cfdd8ab9-fd9c-405c-ae8a-f40834deea0a",
+      "name": "Generate Survey Feedback",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.8
+        }
+      },
+      "id": "ba25c1f7-4d26-4cef-8403-89e4b86242c6",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1216,
+        528
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "pbzrsOpC8J7lklO1",
+          "name": "OpenAi account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA",
+          "mode": "list",
+          "cachedResultName": "Synthetic Employee Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1riN_UghKp6tRfh84bWlrelyLTunfRT5oHees6V3BOCA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "employee_id",
+              "displayName": "employee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employee_name",
+              "displayName": "employee_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tenure_months",
+              "displayName": "tenure_months",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stress_score",
+              "displayName": "stress_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "growth_score",
+              "displayName": "growth_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "collaboration_score",
+              "displayName": "collaboration_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "burnout_risk",
+              "displayName": "burnout_risk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_text",
+              "displayName": "feedback_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "retention_risk",
+              "displayName": "retention_risk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "learning_interest",
+              "displayName": "learning_interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "meeting_overload",
+              "displayName": "meeting_overload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow_blockers",
+              "displayName": "workflow_blockers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_feedback_date",
+              "displayName": "last_feedback_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9e126121-2549-4155-bfcb-692706a539dc",
+      "name": "Write Feedback to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yPOADkpyi2JMdavB",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst shuffled = allItems.sort(() => Math.random() - 0.5);\nconst selected = shuffled.slice(0, 1);\nreturn selected;"
+      },
+      "id": "b4721385-04ea-4a1c-b07c-9988884d028e",
+      "name": "Select Random 10",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.feedback_text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "employee_id",
+                "value": "={{ $json.employee_id }}"
+              },
+              {
+                "name": "department",
+                "value": "={{ $json.department }}"
+              },
+              {
+                "name": "manager",
+                "value": "={{ $json.manager }}"
+              },
+              {
+                "name": "sentiment",
+                "value": "={{ $json.sentiment }}"
+              },
+              {
+                "name": "burnout_risk",
+                "value": "={{ $json.burnout_risk }}"
+              },
+              {
+                "name": "stress_score",
+                "value": "={{ $json.stress_score }}"
+              },
+              {
+                "name": "growth_score",
+                "value": "={{ $json.growth_score }}"
+              },
+              {
+                "name": "collaboration_score",
+                "value": "={{ $json.collaboration_score }}"
+              },
+              {
+                "name": "retention_risk",
+                "value": "={{ $json.retention_risk }}"
+              },
+              {
+                "name": "learning_interest",
+                "value": "={{ $json.learning_interest }}"
+              },
+              {
+                "name": "meeting_overload",
+                "value": "={{ $json.meeting_overload }}"
+              },
+              {
+                "name": "workflow_blockers",
+                "value": "={{ $json.workflow_blockers }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f48395d8-acf9-45e6-b833-ef0482bacf67",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        2064,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "id": "5f6c6185-0416-4188-bd06-2daa6c68455a",
+      "name": "Recursive Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        736
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c4fe326e-f113-411d-bf09-a8b02a015e27",
+      "name": "Google Gemini Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        528
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3ppZfKIN0xzQRJeQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "let aiOutput = $input.item.json.output;\n\n// Remove markdown code blocks if present\naiOutput = aiOutput.replace(/```json\\s*/g, \"\").replace(/```\\s*$/g, \"\").trim();\n\ntry {\n  let feedbackRecord = JSON.parse(aiOutput);\n  \n  // If it's an array with one item, extract it\n  if (Array.isArray(feedbackRecord) && feedbackRecord.length === 1) {\n    feedbackRecord = feedbackRecord[0];\n  }\n  \n  // Return as n8n item\n  return { json: feedbackRecord };\n  \n} catch (error) {\n  return { json: { error: \"Failed to parse JSON: \" + error.message, raw_output: aiOutput } };\n}"
+      },
+      "id": "7aa95600-1f4f-4b71-babd-d919708d597c",
+      "name": "Parse AI Output to JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "employee_feedback_vectors",
+        "options": {}
+      },
+      "id": "06945f6b-cd82-4261-9dc9-63ebb035d241",
+      "name": "Insert to Postgres Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        1968,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "9fmkfC3jI50WDwt4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "S2iENiNCAf0BUafg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/S2iENiNCAf0BUafg",
+          "cachedResultName": "Team Sentiment and Growth Feedback Sub-Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "1c2482d9-5f75-48c6-970b-0370c753b737",
+      "name": "Trigger Team Sentiment Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2656,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "employee_id",
+              "value": "={{ $json.metadata.employee_id }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "department",
+              "value": "={{ $json.metadata.department }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "manager",
+              "value": "={{ $json.metadata.manager }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "sentiment",
+              "value": "={{ $json.metadata.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "burnout_risk",
+              "value": "={{ $json.metadata.burnout_risk }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "stress_score",
+              "value": "={{ $json.metadata.stress_score }}",
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "growth_score",
+              "value": "={{ $json.metadata.growth_score }}",
+              "type": "number"
+            },
+            {
+              "id": "8",
+              "name": "collaboration_score",
+              "value": "={{ $json.metadata.collaboration_score }}",
+              "type": "number"
+            },
+            {
+              "id": "9",
+              "name": "retention_risk",
+              "value": "={{ $json.metadata.retention_risk }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "learning_interest",
+              "value": "={{ $json.metadata.learning_interest }}",
+              "type": "string"
+            },
+            {
+              "id": "11",
+              "name": "meeting_overload",
+              "value": "={{ $json.metadata.meeting_overload }}",
+              "type": "boolean"
+            },
+            {
+              "id": "12",
+              "name": "workflow_blockers",
+              "value": "={{ $json.metadata.workflow_blockers }}",
+              "type": "string"
+            },
+            {
+              "id": "13",
+              "name": "feedback_text",
+              "value": "={{ $json.pageContent }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0e11c78a-5941-43b9-a693-2d1a050207ef",
+      "name": "Prepare Prompt for Sub-Workflow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2432,
+        304
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Read Employee Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Employee Data": {
+      "main": [
+        [
+          {
+            "node": "Select Random 10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Employee Context": {
+      "main": [
+        [
+          {
+            "node": "Generate Survey Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Survey Feedback": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Output to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Survey Feedback",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ],
+      "main": [
+        []
+      ]
+    },
+    "Write Feedback to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Insert to Postgres Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Random 10": {
+      "main": [
+        [
+          {
+            "node": "Prepare Employee Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert to Postgres Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert to Postgres Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Output to JSON": {
+      "main": [
+        [
+          {
+            "node": "Write Feedback to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert to Postgres Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Prepare Prompt for Sub-Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Team Sentiment Workflow": {
+      "main": [
+        []
+      ]
+    },
+    "Prepare Prompt for Sub-Workflow": {
+      "main": [
+        [
+          {
+            "node": "Trigger Team Sentiment Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "485ed41e-1a3a-4a3e-bb93-b5a67d73e2e0",
+  "meta": {
+    "instanceId": "55f05c06ad1cfec369b1ee5e23826261e170e4ff502372d530dcb14dea4ef6eb"
+  },
+  "id": "ZClpFYjxgxRl90hd",
+  "tags": []
+}
